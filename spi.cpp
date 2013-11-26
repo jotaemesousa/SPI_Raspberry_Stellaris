@@ -4,11 +4,25 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 
 using namespace std;
  
 #define ARRAY_SIZE(array) sizeof(array)/sizeof(array[0])
  
+struct ROSCASDataToSTELLARIS
+{
+    int8_t v_linear;
+    int8_t v_angular;
+    uint8_t cmd;
+};
+
+struct ROSCASDataFromSTELLARIS
+{
+    uint8_t var1;
+    uint8_t var2;
+};
+
  
 int main(int argc, char **argv) 
 {
@@ -26,24 +40,66 @@ int main(int argc, char **argv)
 		printf("%s: Device %s not found\n", argv[0], argv[1]);
 		exit(1);
 	}
+	
+	int cmd = 0, l = -1, a = -128;
+	if(argc == 5)
+	{
+	    sscanf(argv[2], "%d", &l);
+	    sscanf(argv[3], "%d", &a);
+	    sscanf(argv[4], "%d", &cmd);
+	}
 	int t[]={0x20,0x21,0x33,0x45};
-
-	uint16_t valor = 256;
-
-	uint8_t tab[5];
-	memset(tab,0,5);
-	memcpy(tab,&valor,2);
-	write(fd, tab, 1);
-	write(fd, tab + 1, 1);
-	//write(fd,t,1);
-	//write(fd,t+1,1);
-	//write(fd,t+2,1);
-	//write(fd,t+3,1);
+	
 	
 
-	/*write(fd,wr_buff+1,1);
-	write(fd,wr_buff+2,1);
-	write(fd,wr_buff+3,1);*/
+    struct ROSCASDataToSTELLARIS cmd_vel;
+    cmd_vel.v_linear = l;
+    cmd_vel.v_angular = a;
+    cmd_vel.cmd = cmd;
+    uint8_t *p_valor = (uint8_t *)&cmd_vel;
+    
+    cout << sizeof(struct ROSCASDataToSTELLARIS) << endl;
+
+    for(int i = 0; i < sizeof(struct ROSCASDataToSTELLARIS); i++)
+    {
+        write(fd,p_valor + i,1);
+    }
+
+    usleep(1000);
+    
+    struct ROSCASDataFromSTELLARIS received;
+    received.var1 = 0;
+    received.var2 = 0;
+    uint8_t *p_rec = (uint8_t *)&received;
+    
+    cout << sizeof(struct ROSCASDataFromSTELLARIS) << endl;
+    
+    if(cmd_vel.cmd == 1)
+    {
+      cout << "A receber .. " << endl;
+      for(int i = 0; i < (int)sizeof(struct ROSCASDataFromSTELLARIS); i++)
+      { 
+	  if(i == -1)
+	  {
+	      read(fd, NULL, 1);
+	      cout << "nada\n";
+	    
+	  }
+	  else
+	  {
+	      read(fd, p_rec + i, 1);
+// 	      cout << "cenas\n" << endl;
+// 	      printf("byte = %x\n" , p_rec[i]);
+	  }
+	  
+	  cout << i  << endl;
+      }
+      memcpy(&received, p_rec, sizeof(struct ROSCASDataFromSTELLARIS));
+      
+      
+      
+      cout << "recebeu var1 = " << (int)received.var1 << " e var2 = " << (int)received.var2 << endl;
+    }
 	
 	/*
 	if (write(fd, wr_buf, ARRAY_SIZE(wr_buf)) != ARRAY_SIZE(wr_buf))
