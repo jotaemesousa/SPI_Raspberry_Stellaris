@@ -79,17 +79,9 @@ int main(int argc, char **argv)
       cout << "A receber .. " << endl;
       for(int i = 0; i < (int)sizeof(struct ROSCASDataFromSTELLARIS); i++)
       { 
-	  if(i == -1)
-	  {
-	      read(fd, NULL, 1);
-	      cout << "nada\n";
-	    
-	  }
-	  else
-	  {
-	      read(fd, p_rec + i, 1);
-// 	      cout << "cenas\n" << endl;
-// 	      printf("byte = %x\n" , p_rec[i]);
+	  read(fd, p_rec + i, 1);
+	      cout << "cenas\n" << endl;
+	      printf("byte = %x\n" , p_rec[i]);
 	  }
 	  
 	  cout << i  << endl;
