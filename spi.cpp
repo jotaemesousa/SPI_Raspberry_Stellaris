@@ -65,7 +65,7 @@ int main(int argc, char **argv)
         write(fd,p_valor + i,1);
     }
 
-    usleep(1000);
+    //usleep(100);
     
     struct ROSCASDataFromSTELLARIS received;
     received.var1 = 0;
@@ -80,13 +80,13 @@ int main(int argc, char **argv)
       for(int i = 0; i < (int)sizeof(struct ROSCASDataFromSTELLARIS); i++)
       { 
 	  read(fd, p_rec + i, 1);
-	      cout << "cenas\n" << endl;
-	      printf("byte = %x\n" , p_rec[i]);
-	  }
+	  cout << "cenas\n" << endl;
+	  printf("byte = %x\n" , p_rec[i]);
+	
 	  
 	  cout << i  << endl;
       }
-      memcpy(&received, p_rec, sizeof(struct ROSCASDataFromSTELLARIS));
+      
       
       
       
