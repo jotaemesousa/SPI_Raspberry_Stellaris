@@ -105,7 +105,7 @@ int main(void)
 				memcpy(&cmd, rec_buffer, received_data);
 				received_data = 0;
 
-				UARTprintf("Struct L = %d, A = %d, C = %d\r", cmd.v_linear, cmd.v_angular, cmd.cmd);
+
 				send_next_data = cmd.cmd;
 
 				send_data.var1 = cmd.v_linear;
@@ -145,7 +145,9 @@ int main(void)
 			{
 				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
 			}
+			UARTprintf("Struct L = %d, A = %d, C = %d\r", cmd.v_linear, cmd.v_angular, cmd.cmd);
 		}
+
 
 	}
 }
