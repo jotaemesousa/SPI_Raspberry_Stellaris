@@ -9,6 +9,7 @@ static void FaultISR(void);
 static void IntDefaultHandler(void);
 
 extern void Timer0IntHandler(void);
+extern void SSIIntHandler(void);
 
 //*****************************************************************************
 //
@@ -101,7 +102,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // GPIO Port G
     IntDefaultHandler,                    	// GPIO Port H
     IntDefaultHandler,                      // Reserved
-    IntDefaultHandler,                      // SSI1 Rx and Tx
+    SSIIntHandler,		                    // SSI1 Rx and Tx
     IntDefaultHandler,                      // Timer 3 subtimer A
     IntDefaultHandler,                      // Timer 3 subtimer B
     IntDefaultHandler,                      // I2C1 Master and Slave

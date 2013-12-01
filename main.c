@@ -26,6 +26,12 @@
 #include "utils/uartstdio.h"
 #include <string.h>
 
+#define BLINKY_BIT          0x80
+#define ASK_DATA_BIT        0x40
+#define HBRIDGEMODE_BIT     0x20
+#define ASK_FIRMWARE_BIT    0x10
+#define STARTSTOP_BIT       0x08
+
 struct ROSCASDataFromRASPI
 {
 	int8_t v_linear;
@@ -33,13 +39,21 @@ struct ROSCASDataFromRASPI
 	uint8_t cmd;
 };
 
-struct ROSCASDataToRASPI
+typedef struct ROSCASDataToRASPI_
 {
-	uint8_t var1;
-	uint8_t var2;
-};
+	int32_t left_encoder_count;
+	    int32_t right_encoder_count;
+	    uint8_t battery_voltage;
+	    uint8_t battery_current;
 
+	    uint8_t cenas;
+	    uint8_t cmd_back;
+}ROSCASDataToRASPI;
+
+uint8_t buff[20];
 static unsigned long ulClockMS = 0;
+
+void SSIIntHandler(void);
 
 int main(void)
 {
@@ -64,6 +78,15 @@ int main(void)
 	SSIConfigSetExpClk(SSI1_BASE,SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,SSI_MODE_SLAVE, 5000,8);
 	SSIEnable(SSI1_BASE);
 
+	//IntMasterEnable();
+
+	SSIIntRegister(SSI1_BASE, SSIIntHandler);
+//	SSIIntClear(SSI1_BASE, SSI_RXFF | SSI_RXTO);
+//	SSIIntEnable(SSI1_BASE, SSI_RXFF | SSI_RXTO);
+	SSIIntClear(SSI1_BASE, SSI_RXFF /*| SSI_RXTO*/);
+	SSIIntEnable(SSI1_BASE, SSI_RXFF /*| SSI_RXTO*/);
+	IntEnable(INT_SSI1);
+
 	//Uart
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
@@ -76,10 +99,8 @@ int main(void)
 	      SSIDataPut(SSI1_BASE, 0xCC+i);        // put data in the transmit FIFO*/
 
 	struct ROSCASDataFromRASPI cmd;
-	struct ROSCASDataToRASPI send_data;
+	ROSCASDataToRASPI send_data;
 
-	send_data.var1 = 20;
-	send_data.var2 = 20;
 
 	uint8_t received_data = 0;
 	uint8_t send_next_data = 0;
@@ -87,67 +108,123 @@ int main(void)
 	uint8_t rec_buffer[20];
 	memset(rec_buffer,0,20);
 
+	UARTprintf("size %d \n",sizeof( ROSCASDataToRASPI));
 	//
 	// Loop forever.
 	//
 	while(1)
 	{
-		/*MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
-		MAP_SysCtlDelay(ulClockMS*500);
-		MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
-		MAP_SysCtlDelay(ulClockMS*500);*/
+//		MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
+//		MAP_SysCtlDelay(ulClockMS*500);
+//		MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
+//		MAP_SysCtlDelay(ulClockMS*500);
 
-		if(SSIDataGetNonBlocking(SSI1_BASE, &ulDataRx) == 0)  // if no more data
-		{
-			if(received_data == sizeof(struct ROSCASDataFromRASPI))
-			{
-
-				memcpy(&cmd, rec_buffer, received_data);
-				received_data = 0;
-
-
-				send_next_data = cmd.cmd;
-
-				send_data.var1 = cmd.v_linear;
-				send_data.var2 = cmd.v_angular;
-			}
-		}
-		else
-		{
-
-			//SSIDataPut(SSI1_BASE, 0xBB);
-			//        SSIDataGet(SSI1_BASE, &ulDataRx);
-			ulDataRx &= 0x00FF;
-			rec_buffer[received_data] = ulDataRx;
-			//SSIDataPut(SSI1_BASE, ulDataRx);
-			UARTprintf("SSI byte %x\r", ulDataRx);
-
-			received_data++;
-		}
-
-		if(send_next_data == 1)
-		{
-			int i;
-			for(i = 0; i < (int)sizeof(struct ROSCASDataToRASPI); i++)
-			{
-				uint8_t *p_send_dada = (uint8_t *)&send_data;
-
+//		if(SSIDataGetNonBlocking(SSI1_BASE, &ulDataRx) == 0)  // if no more data
+//		{
+//			if(received_data == sizeof(struct ROSCASDataFromRASPI))
+//			{
+//
+//				memcpy(&cmd, rec_buffer, received_data);
+//				received_data = 0;
+//
+//				UARTprintf("YARR\r");
+//				if((cmd.cmd & ASK_DATA_BIT) == ASK_DATA_BIT)
+//				{
+//					send_next_data = 1;
+//					UARTprintf("Send\r");
+//				}
+//
+//				if((cmd.cmd & ASK_FIRMWARE_BIT) == ASK_FIRMWARE_BIT)
+//				{
+//					send_data.left_encoder_count = 10;
+//					send_data.right_encoder_count = 0;
+//					send_data.battery_current = 0;
+//					send_data.battery_voltage = 0;
+//					send_data.cenas = 0;
+//					send_data.cmd_back = cmd.cmd;
+//				}
+//				else
+//				{
+//					send_data.left_encoder_count = 0;
+//					send_data.right_encoder_count = 10;
+//					send_data.battery_current = 20;
+//					send_data.battery_voltage = 2;
+//					send_data.cmd_back = cmd.cmd;
+//				}
+//			}
+//		}
+//		else
+//		{Enable
+//
+//			//SSIDataPut(SSI1_BASE, 0xBB);
+//			//        SSIDataGet(SSI1_BASE, &ulDataRx);
+//			ulDataRx &= 0x00FF;
+//			rec_buffer[received_data] = ulDataRx;
+//			//SSIDataPut(SSI1_BASE, ulDataRx);
+//			UARTprintf("SSI byte %x\r", ulDataRx);
+//
+//			received_data++;
+//		}
+//
+//		if(send_next_data == 1)
+//		{
+//			int i;
+//			uint8_t *p_send_dada = (uint8_t *)&send_data;
+//
+//			for(i = 0; i < (int)sizeof(ROSCASDataToRASPI); i++)
+//			{
+//
+////				SSIDataPutNonBlocking(SSI1_BASE, p_send_dada[i]);
+////				UARTprintf("SSI wrote byte %x\r", p_send_dada[i]);
+//
 //				SSIDataPutNonBlocking(SSI1_BASE, p_send_dada[i]);
-//				UARTprintf("SSI wrote byte %x\r", p_send_dada[i]);
-
-				SSIDataPutNonBlocking(SSI1_BASE, p_send_dada[i]);
-
-
-			}
-			send_next_data = 0;
-
-			for(i = 0; i < (int)sizeof(struct ROSCASDataToRASPI); i++)
-			{
-				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
-			}
-			UARTprintf("Struct L = %d, A = %d, C = %d\r", cmd.v_linear, cmd.v_angular, cmd.cmd);
-		}
-
-
+//				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
+//			}
+//			send_next_data = 0;
+//
+////			for(i = 0; i < (int)sizeof(ROSCASDataToRASPI); i++)
+////			{
+////				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
+////			}
+//			UARTprintf("Struct L = %d, A = %d, C = %d\r", cmd.v_linear, cmd.v_angular, cmd.cmd);
+//		}
 	}
+}
+
+void SSIIntHandler(void)
+{
+	uint8_t c1 = 0,c2 =0;
+
+	MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
+
+	while(SSIDataGetNonBlocking(SSI1_BASE, &c1))
+	{
+		//UARTprintf("rec %x \n", c1);
+		buff[c2] = c1;
+
+		//UARTprintf("rec1 %x %d\n", buff[c2], c2);
+		c2++;
+	}
+
+//	UARTprintf("buf %x\n", buff[0]);
+//	UARTprintf("buf %x\n", buff[1]);
+//	UARTprintf("buf %x\n", buff[2]);
+//	UARTprintf("buf %x\n", buff[3]);
+
+//	for (int i = 0; i < 4; i++)
+//	{
+//		UARTprintf("buff %x\n", buff[i]);
+//	}
+	//UARTprintf("rec %x %x %x %x\n", buff[0], buff[1], buff[2], buff[3]);
+	//UARTprintf("rec %x \n", c1);
+
+	for (int i = 0; i < 4; i++)
+	{
+		SSIDataPutNonBlocking(SSI1_BASE, buff[i]);
+		SSIDataGetNonBlocking(SSI1_BASE, NULL);
+	}
+
+	//SSIIntClear(SSI1_BASE, SSI_RXFF | SSI_RXTO);
+	SSIIntClear(SSI1_BASE, SSI_RXFF );
+	MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
 }
