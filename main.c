@@ -50,7 +50,7 @@ typedef struct ROSCASDataToRASPI_
 	    uint8_t cmd_back;
 }ROSCASDataToRASPI;
 
-uint8_t buff[20];
+
 static unsigned long ulClockMS = 0;
 
 void SSIIntHandler(void);
@@ -193,23 +193,26 @@ int main(void)
 
 void SSIIntHandler(void)
 {
-	uint8_t c1 = 0,c2 =0;
+	SSIIntClear(SSI1_BASE, SSI_RXFF );
+
+	uint8_t buff[4];
+	uint8_t received_byte = 0, buffer_index =0;
 
 	MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
 
-	while(SSIDataGetNonBlocking(SSI1_BASE, &c1))
+	while(SSIDataGetNonBlocking(SSI1_BASE, &received_byte))
 	{
-		//UARTprintf("rec %x \n", c1);
-		buff[c2] = c1;
+		//UARTprintf("rec %x \n", received_byte);
+		buff[buffer_index] = received_byte;
 
-		//UARTprintf("rec1 %x %d\n", buff[c2], c2);
-		c2++;
+		//UARTprintf("rec1 %x %d\n", buff[buffer_index], buffer_index);
+		buffer_index++;
 	}
 
-//	UARTprintf("buf %x\n", buff[0]);
-//	UARTprintf("buf %x\n", buff[1]);
-//	UARTprintf("buf %x\n", buff[2]);
-//	UARTprintf("buf %x\n", buff[3]);
+	UARTprintf("buf %x\n", buff[0]);
+	UARTprintf("buf %x\n", buff[1]);
+	UARTprintf("buf %x\n", buff[2]);
+	UARTprintf("buf %x\n", buff[3]);
 
 //	for (int i = 0; i < 4; i++)
 //	{
@@ -221,10 +224,9 @@ void SSIIntHandler(void)
 	for (int i = 0; i < 4; i++)
 	{
 		SSIDataPutNonBlocking(SSI1_BASE, buff[i]);
-		SSIDataGetNonBlocking(SSI1_BASE, NULL);
+		//SSIDataGet(SSI1_BASE, NULL);
 	}
 
-	//SSIIntClear(SSI1_BASE, SSI_RXFF | SSI_RXTO);
-	SSIIntClear(SSI1_BASE, SSI_RXFF );
+
 	MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
 }
