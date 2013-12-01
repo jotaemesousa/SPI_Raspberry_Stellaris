@@ -137,27 +137,12 @@ void SSIIntHandler(void)
 		}
 		else
 		{
-			//UARTprintf("rec %x \n", received_byte);
 			buff[buffer_index] = received_byte;
 			buff[buffer_index + 4] = received_byte+1;
 			buff[buffer_index + 8] = received_byte+2;
-			//UARTprintf("rec1 %x %d\n", buff[buffer_index], buffer_index);
 			buffer_index++;
 		}
 	}
-
-
-	//	UARTprintf("buf %x\n", buff[0]);
-	//	UARTprintf("buf %x\n", buff[1]);
-	//	UARTprintf("buf %x\n", buff[2]);
-	//	UARTprintf("buf %x\n", buff[3]);
-
-	//	for (int i = 0; i < 4; i++)
-	//	{
-	//		UARTprintf("buff %x\n", buff[i]);
-	//	}
-	//UARTprintf("rec %x %x %x %x\n", buff[0], buff[1], buff[2], buff[3]);
-	//UARTprintf("rec %x \n", c1);
 
 	for (int f = last_send_byte_index; f < 12; f++)
 	{
