@@ -42,12 +42,12 @@ struct ROSCASDataFromRASPI
 typedef struct ROSCASDataToRASPI_
 {
 	int32_t left_encoder_count;
-	    int32_t right_encoder_count;
-	    uint8_t battery_voltage;
-	    uint8_t battery_current;
+	int32_t right_encoder_count;
+	uint8_t battery_voltage;
+	uint8_t battery_current;
 
-	    uint8_t cenas;
-	    uint8_t cmd_back;
+	uint8_t cenas;
+	uint8_t cmd_back;
 }ROSCASDataToRASPI;
 
 
@@ -81,8 +81,8 @@ int main(void)
 	//IntMasterEnable();
 
 	SSIIntRegister(SSI1_BASE, SSIIntHandler);
-//	SSIIntClear(SSI1_BASE, SSI_RXFF | SSI_RXTO);
-//	SSIIntEnable(SSI1_BASE, SSI_RXFF | SSI_RXTO);
+	//	SSIIntClear(SSI1_BASE, SSI_RXFF | SSI_RXTO);
+	//	SSIIntEnable(SSI1_BASE, SSI_RXFF | SSI_RXTO);
 	SSIIntClear(SSI1_BASE, SSI_RXFF /*| SSI_RXTO*/);
 	SSIIntEnable(SSI1_BASE, SSI_RXFF /*| SSI_RXTO*/);
 	IntEnable(INT_SSI1);
@@ -114,80 +114,80 @@ int main(void)
 	//
 	while(1)
 	{
-//		MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
-//		MAP_SysCtlDelay(ulClockMS*500);
-//		MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
-//		MAP_SysCtlDelay(ulClockMS*500);
+		//		MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
+		//		MAP_SysCtlDelay(ulClockMS*500);
+		//		MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
+		//		MAP_SysCtlDelay(ulClockMS*500);
 
-//		if(SSIDataGetNonBlocking(SSI1_BASE, &ulDataRx) == 0)  // if no more data
-//		{
-//			if(received_data == sizeof(struct ROSCASDataFromRASPI))
-//			{
-//
-//				memcpy(&cmd, rec_buffer, received_data);
-//				received_data = 0;
-//
-//				UARTprintf("YARR\r");
-//				if((cmd.cmd & ASK_DATA_BIT) == ASK_DATA_BIT)
-//				{
-//					send_next_data = 1;
-//					UARTprintf("Send\r");
-//				}
-//
-//				if((cmd.cmd & ASK_FIRMWARE_BIT) == ASK_FIRMWARE_BIT)
-//				{
-//					send_data.left_encoder_count = 10;
-//					send_data.right_encoder_count = 0;
-//					send_data.battery_current = 0;
-//					send_data.battery_voltage = 0;
-//					send_data.cenas = 0;
-//					send_data.cmd_back = cmd.cmd;
-//				}
-//				else
-//				{
-//					send_data.left_encoder_count = 0;
-//					send_data.right_encoder_count = 10;
-//					send_data.battery_current = 20;
-//					send_data.battery_voltage = 2;
-//					send_data.cmd_back = cmd.cmd;
-//				}
-//			}
-//		}
-//		else
-//		{Enable
-//
-//			//SSIDataPut(SSI1_BASE, 0xBB);
-//			//        SSIDataGet(SSI1_BASE, &ulDataRx);
-//			ulDataRx &= 0x00FF;
-//			rec_buffer[received_data] = ulDataRx;
-//			//SSIDataPut(SSI1_BASE, ulDataRx);
-//			UARTprintf("SSI byte %x\r", ulDataRx);
-//
-//			received_data++;
-//		}
-//
-//		if(send_next_data == 1)
-//		{
-//			int i;
-//			uint8_t *p_send_dada = (uint8_t *)&send_data;
-//
-//			for(i = 0; i < (int)sizeof(ROSCASDataToRASPI); i++)
-//			{
-//
-////				SSIDataPutNonBlocking(SSI1_BASE, p_send_dada[i]);
-////				UARTprintf("SSI wrote byte %x\r", p_send_dada[i]);
-//
-//				SSIDataPutNonBlocking(SSI1_BASE, p_send_dada[i]);
-//				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
-//			}
-//			send_next_data = 0;
-//
-////			for(i = 0; i < (int)sizeof(ROSCASDataToRASPI); i++)
-////			{
-////				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
-////			}
-//			UARTprintf("Struct L = %d, A = %d, C = %d\r", cmd.v_linear, cmd.v_angular, cmd.cmd);
-//		}
+		//		if(SSIDataGetNonBlocking(SSI1_BASE, &ulDataRx) == 0)  // if no more data
+		//		{
+		//			if(received_data == sizeof(struct ROSCASDataFromRASPI))
+		//			{
+		//
+		//				memcpy(&cmd, rec_buffer, received_data);
+		//				received_data = 0;
+		//
+		//				UARTprintf("YARR\r");
+		//				if((cmd.cmd & ASK_DATA_BIT) == ASK_DATA_BIT)
+		//				{
+		//					send_next_data = 1;
+		//					UARTprintf("Send\r");
+		//				}
+		//
+		//				if((cmd.cmd & ASK_FIRMWARE_BIT) == ASK_FIRMWARE_BIT)
+		//				{
+		//					send_data.left_encoder_count = 10;
+		//					send_data.right_encoder_count = 0;
+		//					send_data.battery_current = 0;
+		//					send_data.battery_voltage = 0;
+		//					send_data.cenas = 0;
+		//					send_data.cmd_back = cmd.cmd;
+		//				}
+		//				else
+		//				{
+		//					send_data.left_encoder_count = 0;
+		//					send_data.right_encoder_count = 10;
+		//					send_data.battery_current = 20;
+		//					send_data.battery_voltage = 2;
+		//					send_data.cmd_back = cmd.cmd;
+		//				}
+		//			}
+		//		}
+		//		else
+		//		{Enable
+		//
+		//			//SSIDataPut(SSI1_BASE, 0xBB);
+		//			//        SSIDataGet(SSI1_BASE, &ulDataRx);
+		//			ulDataRx &= 0x00FF;
+		//			rec_buffer[received_data] = ulDataRx;
+		//			//SSIDataPut(SSI1_BASE, ulDataRx);
+		//			UARTprintf("SSI byte %x\r", ulDataRx);
+		//
+		//			received_data++;
+		//		}
+		//
+		//		if(send_next_data == 1)
+		//		{
+		//			int i;
+		//			uint8_t *p_send_dada = (uint8_t *)&send_data;
+		//
+		//			for(i = 0; i < (int)sizeof(ROSCASDataToRASPI); i++)
+		//			{
+		//
+		////				SSIDataPutNonBlocking(SSI1_BASE, p_send_dada[i]);
+		////				UARTprintf("SSI wrote byte %x\r", p_send_dada[i]);
+		//
+		//				SSIDataPutNonBlocking(SSI1_BASE, p_send_dada[i]);
+		//				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
+		//			}
+		//			send_next_data = 0;
+		//
+		////			for(i = 0; i < (int)sizeof(ROSCASDataToRASPI); i++)
+		////			{
+		////				while(!SSIDataGetNonBlocking(SSI1_BASE, NULL));
+		////			}
+		//			UARTprintf("Struct L = %d, A = %d, C = %d\r", cmd.v_linear, cmd.v_angular, cmd.cmd);
+		//		}
 	}
 }
 
@@ -195,38 +195,58 @@ void SSIIntHandler(void)
 {
 	SSIIntClear(SSI1_BASE, SSI_RXFF );
 
-	uint8_t buff[4];
-	uint8_t received_byte = 0, buffer_index =0;
+	static uint8_t bytes_left_to_receive = 0;
+	static uint8_t last_send_byte_index = 0;
+
+	uint8_t buff[12];
+	unsigned long received_byte = 0, buffer_index =0;
 
 	MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,GPIO_PIN_7);
 
 	while(SSIDataGetNonBlocking(SSI1_BASE, &received_byte))
 	{
-		//UARTprintf("rec %x \n", received_byte);
-		buff[buffer_index] = received_byte;
-
-		//UARTprintf("rec1 %x %d\n", buff[buffer_index], buffer_index);
-		buffer_index++;
+		if(bytes_left_to_receive)	// bytes_left_to_receive > 0
+		{
+			bytes_left_to_receive--;
+		}
+		else
+		{
+			//UARTprintf("rec %x \n", received_byte);
+			buff[buffer_index] = received_byte;
+			buff[buffer_index + 4] = received_byte+1;
+			buff[buffer_index + 8] = received_byte+2;
+			//UARTprintf("rec1 %x %d\n", buff[buffer_index], buffer_index);
+			buffer_index++;
+		}
 	}
 
-	UARTprintf("buf %x\n", buff[0]);
-	UARTprintf("buf %x\n", buff[1]);
-	UARTprintf("buf %x\n", buff[2]);
-	UARTprintf("buf %x\n", buff[3]);
 
-//	for (int i = 0; i < 4; i++)
-//	{
-//		UARTprintf("buff %x\n", buff[i]);
-//	}
+	//	UARTprintf("buf %x\n", buff[0]);
+	//	UARTprintf("buf %x\n", buff[1]);
+	//	UARTprintf("buf %x\n", buff[2]);
+	//	UARTprintf("buf %x\n", buff[3]);
+
+	//	for (int i = 0; i < 4; i++)
+	//	{
+	//		UARTprintf("buff %x\n", buff[i]);
+	//	}
 	//UARTprintf("rec %x %x %x %x\n", buff[0], buff[1], buff[2], buff[3]);
 	//UARTprintf("rec %x \n", c1);
 
-	for (int i = 0; i < 4; i++)
+	for (int f = last_send_byte_index; f < 12; f++)
 	{
-		SSIDataPutNonBlocking(SSI1_BASE, buff[i]);
-		//SSIDataGet(SSI1_BASE, NULL);
+
+		SSIDataPutNonBlocking(SSI1_BASE, buff[f]);
+
+		bytes_left_to_receive += 1;
+
+		unsigned long ulStatus = SSIIntStatus(SSI1_BASE,false);
+		UARTprintf("%d - %x\n", f, ulStatus);
+		if(/*(ulStatus & SSI_TXFF) ||*/(ulStatus & SSI_RXTO) || (ulStatus & SSI_RXFF))
+		{
+			last_send_byte_index = f+1;
+			break;
+		}
 	}
-
-
 	MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
 }
