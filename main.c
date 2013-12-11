@@ -150,15 +150,28 @@ void SSIIntHandler(void)
 		if(n_bytes_received >= 3)
 		{
 
-			struct_to_send.left_encoder_count = struct_to_receive.v_linear;
-			struct_to_send.right_encoder_count = -struct_to_receive.v_linear;
-			struct_to_send.battery_voltage  = 20;
-			struct_to_send.battery_current = 30;
-			struct_to_send.cmd_back = struct_to_receive.cmd;
+
 
 			if(struct_to_receive.cmd & ASK_DATA_BIT)
 			{
+				if(struct_to_receive.cmd & ASK_FIRMWARE_BIT)
+				{
+					struct_to_send.left_encoder_count = 10;
+					struct_to_send.right_encoder_count = -struct_to_receive.v_linear;
+					struct_to_send.battery_voltage  = 20;
+					struct_to_send.battery_current = 30;
+					struct_to_send.cmd_back = struct_to_receive.cmd;
+				}
+				else
+				{
+					struct_to_send.left_encoder_count = struct_to_receive.v_linear;
+					struct_to_send.right_encoder_count = -struct_to_receive.v_linear;
+					struct_to_send.battery_voltage  = 20;
+					struct_to_send.battery_current = 30;
+					struct_to_send.cmd_back = struct_to_receive.cmd;
 
+
+				}
 				state_interrupt = SENDING_AFTER_RECEIVING;
 				bytes_left_to_send = sizeof( ROSCASDataToRASPI);
 				SSIDataPutNonBlocking(SSI1_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
