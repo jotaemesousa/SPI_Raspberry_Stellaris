@@ -171,7 +171,7 @@ void SSIIntHandler(void)
 				n_bytes_received = 0;
 				buffer_index = 0;
 				bytes_left_to_send = 0;
-				//UARTprintf("nnot send\n");
+				// UARTprintf("nnot send\n");
 			}
 		}
 
