@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     
     cout << sizeof(ROSCASDataFromSTELLARIS) << endl;
     
-    if(cmd_vel.cmd == 1)
+    if(cmd_vel.cmd != 0)
     {
       cout << "A receber .. " << endl;
       for(int i = 0; i < (int)sizeof(ROSCASDataFromSTELLARIS); i++)
