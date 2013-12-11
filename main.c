@@ -82,10 +82,10 @@ int main(void)
 	SSIConfigSetExpClk(SSI1_BASE,SysCtlClockGet(), SSI_FRF_MOTO_MODE_0,SSI_MODE_SLAVE, 5000,8);
 	SSIEnable(SSI1_BASE);
 	//Uart
-		SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-		SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
-		GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-		UARTStdioInit(0);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+	GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+	UARTStdioInit(0);
 	//IntMasterEnable();
 	UARTprintf("Init\n");
 	UARTprintf("status ssi %x \n",SSIIntStatus(SSI1_BASE,0x0F));
@@ -156,10 +156,23 @@ void SSIIntHandler(void)
 			struct_to_send.battery_current = 30;
 			struct_to_send.cmd_back = struct_to_receive.cmd;
 
-			state_interrupt = SENDING_AFTER_RECEIVING;
-			bytes_left_to_send = sizeof( ROSCASDataToRASPI);
-			SSIDataPutNonBlocking(SSI1_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
-			bytes_left_to_send--;
+			if(struct_to_receive.cmd & ASK_DATA_BIT)
+			{
+
+				state_interrupt = SENDING_AFTER_RECEIVING;
+				bytes_left_to_send = sizeof( ROSCASDataToRASPI);
+				SSIDataPutNonBlocking(SSI1_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
+				bytes_left_to_send--;
+				//UARTprintf("send\n");
+			}
+			else
+			{
+				state_interrupt = RECEIVING_STATE;
+				n_bytes_received = 0;
+				buffer_index = 0;
+				bytes_left_to_send = 0;
+				//UARTprintf("nnot send\n");
+			}
 		}
 
 
@@ -183,7 +196,7 @@ void SSIIntHandler(void)
 		}
 
 
-	break;
+		break;
 	}
 
 
