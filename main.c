@@ -37,6 +37,7 @@ typedef struct ROSCASDataFromRASPI_
 	int8_t v_linear;
 	int8_t v_angular;
 	uint8_t cmd;
+	uint8_t useless;
 }ROSCASDataFromRASPI;
 
 typedef struct ROSCASDataToRASPI_
@@ -46,6 +47,7 @@ typedef struct ROSCASDataToRASPI_
 	uint8_t battery_voltage;
 	uint8_t battery_current;
 	uint8_t cmd_back;
+	uint8_t useless;
 }ROSCASDataToRASPI;
 
 typedef enum
@@ -91,8 +93,8 @@ int main(void)
 	UARTprintf("status ssi %x \n",SSIIntStatus(SSI1_BASE,0x0F));
 
 	SSIIntRegister(SSI1_BASE, SSIIntHandler);
-	SSIIntClear(SSI1_BASE, SSI_RXTO /*| SSI_RXFF*/);
-	SSIIntEnable(SSI1_BASE, SSI_RXTO /*| SSI_RXFF*/);
+	SSIIntClear(SSI1_BASE, SSI_RXFF /*| SSI_RXFF*/);
+	SSIIntEnable(SSI1_BASE, SSI_RXFF /*| SSI_RXFF*/);
 	IntEnable(INT_SSI1);
 	UARTprintf("status ssi %x \n",SSIIntStatus(SSI1_BASE,0x0F));
 
@@ -117,7 +119,7 @@ int main(void)
 
 void SSIIntHandler(void)
 {
-	SSIIntClear(SSI1_BASE, SSI_RXTO);
+	SSIIntClear(SSI1_BASE, SSI_RXFF);
 
 	static int8_t bytes_left_to_send = 0;
 	static int8_t n_bytes_received = 0;
@@ -130,24 +132,29 @@ void SSIIntHandler(void)
 
 	uint8_t *pointer_received = (uint8_t *)&struct_to_receive;
 	uint8_t *pointer_send = (uint8_t *)&struct_to_send;
-
+	int i= 0;
 	switch(state_interrupt)
 	{
 	case RECEIVING_STATE:
 
 		// Receives up to 4 bytes (minimum bytes to trigger the interrupt
-		if(SSIDataGetNonBlocking(SSI1_BASE, &received_byte))
-		{
 
-			*(pointer_received + n_bytes_received) = received_byte;
-			buffer_index++;
-			n_bytes_received++;
-			//UARTprintf("rec %x\n", received_byte);
+		for (i = 0; i < 4; ++i) {
 
 
+			if(SSIDataGetNonBlocking(SSI1_BASE, &received_byte))
+			{
+
+				*(pointer_received + n_bytes_received) = received_byte;
+				buffer_index++;
+				n_bytes_received++;
+				//UARTprintf("rec %x\n", received_byte);
+
+
+			}
 		}
 
-		if(n_bytes_received >= 3)
+		if(n_bytes_received >= 4)
 		{
 
 
@@ -174,8 +181,12 @@ void SSIIntHandler(void)
 				}
 				state_interrupt = SENDING_AFTER_RECEIVING;
 				bytes_left_to_send = sizeof( ROSCASDataToRASPI);
-				SSIDataPutNonBlocking(SSI1_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
-				bytes_left_to_send--;
+
+				for(i = 0; i < 4; i++)
+				{
+					SSIDataPutNonBlocking(SSI1_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
+					bytes_left_to_send--;
+				}
 				//UARTprintf("send\n");
 			}
 			else
@@ -194,26 +205,32 @@ void SSIIntHandler(void)
 
 	case SENDING_AFTER_RECEIVING:
 
-		SSIDataGetNonBlocking(SSI1_BASE, &received_byte);
+		for(i = 0; i < 4; i++)
+		{
+			SSIDataGetNonBlocking(SSI1_BASE, &received_byte);
 
-		if(bytes_left_to_send > 0)
-		{
-			SSIDataPutNonBlocking(SSI1_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
-			bytes_left_to_send--;
+			if(bytes_left_to_send > 0)
+			{
+				SSIDataPutNonBlocking(SSI1_BASE, pointer_send[sizeof( ROSCASDataToRASPI) - bytes_left_to_send]);
+				bytes_left_to_send--;
+			}
+			else
+			{
+				state_interrupt = RECEIVING_STATE;
+				n_bytes_received = 0;
+				buffer_index = 0;
+			}
 		}
-		else
-		{
-			state_interrupt = RECEIVING_STATE;
-			n_bytes_received = 0;
-			buffer_index = 0;
-		}
+
+
+
 
 
 		break;
 	}
 
-
-
 	MAP_GPIOPinWrite(GPIO_PORTB_BASE,GPIO_PIN_7,0);
+
+
 
 }
